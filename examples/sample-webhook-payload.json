@@ -1,0 +1,13 @@
+{
+  "event": "message_received",
+  "note": "Sanitized example only.",
+  "data": {
+    "message_id": "EXAMPLE_MESSAGE_ID",
+    "chat_id": "EXAMPLE_CHAT_ID",
+    "sender": {"id": "EXAMPLE_SENDER_ID", "name": "Example Sender"},
+    "provider": "LINKEDIN",
+    "account_id": "EXAMPLE_ACCOUNT_ID",
+    "message_text": "Hello, this is a sample message.",
+    "timestamp": "2026-09-14T00:00:00Z"
+  }
+}
