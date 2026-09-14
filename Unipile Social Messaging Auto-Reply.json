@@ -1,0 +1,782 @@
+{
+  "name": "Unipile Social Messaging Auto-Reply",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "unipile-message-received",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c2e6d2b8-f1f9-4340-aa57-b1223e9f06cc",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        192
+      ],
+      "webhookId": "729ad779-fae3-4eb9-be02-5ed0ab63cadc"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1",
+              "name": "event_name",
+              "type": "string",
+              "value": "={{ $json.body.event || $json.event || 'message_received' }}"
+            },
+            {
+              "id": "f2",
+              "name": "message_id",
+              "type": "string",
+              "value": "={{ $json.body.message_id || $json.body.id || '' }}"
+            },
+            {
+              "id": "f3",
+              "name": "chat_id",
+              "type": "string",
+              "value": "={{ $json.body.chat_id || '' }}"
+            },
+            {
+              "id": "f4",
+              "name": "sender_name",
+              "type": "string",
+              "value": "={{ $json.body.sender ? ($json.body.sender.attendee_name || '') : ($json.body.sender_name || '') }}"
+            },
+            {
+              "id": "f5",
+              "name": "sender_id",
+              "type": "string",
+              "value": "={{ $json.body.sender ? ($json.body.sender.attendee_provider_id || '') : ($json.body.sender_id || '') }}"
+            },
+            {
+              "id": "f6",
+              "name": "provider",
+              "type": "string",
+              "value": "={{ $json.body.account_type || $json.body.provider || '' }}"
+            },
+            {
+              "id": "f7",
+              "name": "account_id",
+              "type": "string",
+              "value": "={{ $json.body.account_id || '' }}"
+            },
+            {
+              "id": "f8",
+              "name": "message_text",
+              "type": "string",
+              "value": "={{ $json.body.message || $json.body.message_text || '' }}"
+            },
+            {
+              "id": "f9",
+              "name": "timestamp",
+              "type": "string",
+              "value": "={{ $json.body.timestamp || $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "884011a1-afce-404e-bd99-976f8ba8d029",
+      "name": "Extract Message Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.message_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "c2",
+              "leftValue": "={{ $json.chat_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "c3",
+              "leftValue": "={{ $json.event_name }}",
+              "rightValue": "message_received",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4467fb61-0c7c-4beb-80c0-afda94a5ae0a",
+      "name": "Check Required Fields",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1VC_dcQj_hq1SWLnWkvdSkx1yG28hcX8YWXz5mSkQZqE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Messages"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "message_id",
+              "lookupValue": "={{ $('Extract Message Data').item.json.message_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "411c0469-36b6-4491-8a94-a7537900e614",
+      "name": "Duplicate Check Lookup",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        96
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7RIz8JiH6m6L1woB",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d1",
+              "leftValue": "={{ $json.message_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "296194e7-d296-4c65-90f5-1902500afddb",
+      "name": "IF Already Processed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'DUPLICATE', message_id: $('Extract Message Data').item.json.message_id, message: 'Message already processed' }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "a6040b2e-95f8-4ebe-97cb-e255dc01db39",
+      "name": "Respond Duplicate",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1VC_dcQj_hq1SWLnWkvdSkx1yG28hcX8YWXz5mSkQZqE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Messages"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message_id": "={{ $('Extract Message Data').item.json.message_id }}",
+            "chat_id": "={{ $('Extract Message Data').item.json.chat_id }}",
+            "sender_name": "={{ $('Extract Message Data').item.json.sender_name }}",
+            "sender_id": "={{ $('Extract Message Data').item.json.sender_id }}",
+            "provider": "={{ $('Extract Message Data').item.json.provider }}",
+            "message_text": "={{ $('Extract Message Data').item.json.message_text }}",
+            "timestamp": "={{ $('Extract Message Data').item.json.timestamp }}",
+            "event_name": "={{ $('Extract Message Data').item.json.event_name }}",
+            "reply_status": "PENDING",
+            "reply_message_id": "",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "schema": [
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sender_name",
+              "displayName": "sender_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sender_id",
+              "displayName": "sender_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "provider",
+              "displayName": "provider",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message_text",
+              "displayName": "message_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event_name",
+              "displayName": "event_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply_status",
+              "displayName": "reply_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply_message_id",
+              "displayName": "reply_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "76292a9a-316a-4fd0-b9ad-677cc2142479",
+      "name": "Append Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        192
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7RIz8JiH6m6L1woB",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api63.unipile.com:19318/api/v1/chats/{{ $('Extract Message Data').item.json.chat_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpTemplatedCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "Thank you for your message. We have received your inquiry and will respond shortly."
+            },
+            {
+              "name": "account_id",
+              "value": "={{ $('Extract Message Data').item.json.account_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7f4b2a99-ebc9-4f69-bfca-68bb07bae8ff",
+      "name": "Unipile Send Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1344,
+        192
+      ],
+      "credentials": {
+        "httpTemplatedCustomAuth": {
+          "id": "yY34BnlSKTNLtvse",
+          "name": "Unipile API (SHAIK M)"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1VC_dcQj_hq1SWLnWkvdSkx1yG28hcX8YWXz5mSkQZqE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Messages"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "message_id"
+          ],
+          "value": {
+            "message_id": "={{ $('Extract Message Data').item.json.message_id }}",
+            "reply_status": "SUCCESS",
+            "reply_message_id": "={{ $('Unipile Send Message').item.json.message_id || $('Unipile Send Message').item.json.id || '' }}",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "schema": [
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply_status",
+              "displayName": "reply_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply_message_id",
+              "displayName": "reply_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1423272f-cf32-4bdd-920a-5e7d7181f44a",
+      "name": "Update Reply Status Success",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        96
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7RIz8JiH6m6L1woB",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'SUCCESS', message_id: $('Extract Message Data').item.json.message_id, reply_message_id: ($('Unipile Send Message').item.json.message_id || $('Unipile Send Message').item.json.id || ''), message: 'Auto-reply sent' }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "e1c059a3-df4e-4c48-9b3a-7f0da25e0acd",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1792,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1VC_dcQj_hq1SWLnWkvdSkx1yG28hcX8YWXz5mSkQZqE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Messages"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "message_id"
+          ],
+          "value": {
+            "message_id": "={{ $('Extract Message Data').item.json.message_id }}",
+            "reply_status": "FAILED",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "schema": [
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply_status",
+              "displayName": "reply_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "22db7c52-c76d-4fa6-8f35-5210a40678b8",
+      "name": "Update Reply Status Failed",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        288
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7RIz8JiH6m6L1woB",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'FAILED', message_id: $('Extract Message Data').item.json.message_id, message: 'Failed to send auto-reply' }) }}",
+        "options": {
+          "responseCode": 502
+        }
+      },
+      "id": "e253300e-5726-467a-82a9-1c8daaf74210",
+      "name": "Respond Failed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1792,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'INVALID_PAYLOAD', message: 'Missing required fields or unsupported event' }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "46a8b827-f9d2-40cf-94ac-50bb05651ed6",
+      "name": "Respond Invalid",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        672,
+        336
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Message Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message Data": {
+      "main": [
+        [
+          {
+            "node": "Check Required Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Required Fields": {
+      "main": [
+        [
+          {
+            "node": "Duplicate Check Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Duplicate Check Lookup": {
+      "main": [
+        [
+          {
+            "node": "IF Already Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Already Processed": {
+      "main": [
+        [
+          {
+            "node": "Respond Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Row": {
+      "main": [
+        [
+          {
+            "node": "Unipile Send Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unipile Send Message": {
+      "main": [
+        [
+          {
+            "node": "Update Reply Status Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Reply Status Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Reply Status Success": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Reply Status Failed": {
+      "main": [
+        [
+          {
+            "node": "Respond Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "1809cf8b-b1f2-4136-968e-ec76d99119b7",
+  "meta": {
+    "instanceId": "6abe9931809978352319cb21622ffdff38accce530bfc6c488633e9f18461d78"
+  },
+  "nodeGroups": [
+    {
+      "id": "43492519-46a9-4e41-a946-36942895936e",
+      "name": "Ingest & Validate",
+      "nodeIds": [
+        "884011a1-afce-404e-bd99-976f8ba8d029",
+        "4467fb61-0c7c-4beb-80c0-afda94a5ae0a"
+      ],
+      "description": "Receive the Unipile message_received webhook, extract fields, and validate required fields."
+    },
+    {
+      "id": "df39fc93-bd34-4355-8586-a8d616af8cea",
+      "name": "Deduplicate",
+      "nodeIds": [
+        "411c0469-36b6-4491-8a94-a7537900e614",
+        "296194e7-d296-4c65-90f5-1902500afddb"
+      ],
+      "description": "Look the message up in Google Sheets and branch out already-processed messages."
+    }
+  ],
+  "id": "MnxelozqQgwQ28zQ",
+  "tags": []
+}
